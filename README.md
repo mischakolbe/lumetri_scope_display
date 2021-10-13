@@ -1,4 +1,4 @@
-# lumetri_scope_display
+# Lumetri scope display
 Convert an image to show up in a lumetri scope.
 
 Lumetri scopes are a type of [histogram](https://en.wikipedia.org/wiki/Image_histogram) in Adobe Premiere, After Effects & co.
