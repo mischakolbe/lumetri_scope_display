@@ -146,7 +146,7 @@ def image_to_vectorscope_hls(
     style="sorted",
     scale_to_fit=True,
     output_resolution=512,
-    bit_depth=9,
+    shades=9,
     outline_with_remaining_pixels=True,
     maintain_chunk_positions=True,
     chunk_fill_color=None,
@@ -169,7 +169,7 @@ def image_to_vectorscope_hls(
             fill the output resolution.
         output_resolution (int): Expected resolution of the Vectorscope. Since
             the Vectorscope is round only one dimension is needed (diameter).
-        bit_depth (int): Number of possible shades of grey.
+        shades (int): Number of possible shades of grey.
         outline_with_remaining_pixels (bool): Whether pixels that aren't used
             to represent the actual image should be used to create an outline
             around the Vectorscope border.
@@ -195,7 +195,7 @@ def image_to_vectorscope_hls(
                 style="sorted",
                 scale_to_fit=True,
                 output_resolution=512,
-                bit_depth=8,
+                shades=8,
                 outline_with_remaining_pixels=True,
                 maintain_chunk_positions=True,
                 chunk_fill_color=None,
@@ -222,20 +222,20 @@ def image_to_vectorscope_hls(
     input_image.close()
     del input_image
 
-    # Find recommended max bit depth and warn user if pixels might overflow.
+    # Find recommended max shades of grey & warn user if pixels might overflow.
     total_output_pixels = output_width * output_height
     # The pixels that aren't inside the circular Vectorscope are ignored.
-    pixels_per_bit_depth = output_resolution ** 2 * math.pi / 4
-    recommended_max_bit_depth = math.floor(total_output_pixels/pixels_per_bit_depth)
-    # Adjust the bit_depth value to get useful dividers.
-    adjusted_bit_depth = bit_depth + 1
-    if adjusted_bit_depth > recommended_max_bit_depth:
+    pixels_per_shade = output_resolution ** 2 * math.pi / 4
+    recommended_max_shades = math.floor(total_output_pixels/pixels_per_shade)
+    # Adjust the shades value to get useful dividers.
+    adjusted_shades = shades + 1
+    if adjusted_shades > recommended_max_shades:
         message = (
-            "The recommended bit depth for your output resolutions is {}. "
-            "Since you went for a higher bit depth ({}) your values might "
+            "The recommended shades of grey for your output resolutions is {}. "
+            "Since you went for more shades of grey ({}) your values might "
             "overflow, which results in an incomplete picture."
         )
-        print(message.format(recommended_max_bit_depth - 1, bit_depth))
+        print(message.format(recommended_max_shades - 1, shades))
 
     # Center image into output resolution
     centered_image = Image.new(
@@ -283,7 +283,7 @@ def image_to_vectorscope_hls(
 
     # Some constants that are used often during the loop.
     angle_offset = math.pi / 2.0
-    bit_depth_divisor = 256.0 / adjusted_bit_depth
+    shades_divisor = 256.0 / adjusted_shades
 
     current_output_array_index = 0
     num_output_pixels = flat_image_array.shape[0]
@@ -311,8 +311,8 @@ def image_to_vectorscope_hls(
             color_for_positioning = tuple(int(c*255) for c in rgb)
 
             # Create multiple pixels to fake greyscale values
-            repeats_for_value = int(value / bit_depth_divisor)
-            for repeat_index in range(adjusted_bit_depth):
+            repeats_for_value = int(value / shades_divisor)
+            for repeat_index in range(adjusted_shades):
                 if repeat_index >= repeats_for_value:
                     # Skip if there are no more repeats to do and data chunks
                     # for output pixels can vary in size.
@@ -489,7 +489,7 @@ def process_folder(
                 style="sorted",
                 scale_to_fit=True,
                 output_resolution=512,
-                bit_depth=8,
+                shades=8,
                 outline_with_remaining_pixels=True,
                 maintain_chunk_positions=True,
                 chunk_fill_color=None,
